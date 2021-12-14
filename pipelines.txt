@@ -1,0 +1,25 @@
+#Вещание на 1 комп
+gst-launch-1.0 nvarguscamerasrc sensor-id=0 ! 'video/x-raw(memory:NVMM),width=1920, height=1080, framerate=60/1, format=NV12' ! nvvidconv ! capsfilter caps='video/x-raw,format=I420'  ! omxh264enc profile=8 control-rate=3 bitrate = 10000000 iframeinterval=5 preset-level=1 ! 'video/x-h264,stream-format=(string)byte-stream' ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=192.168.123.20 port=5001 sync=false async=false
+
+
+#Прием
+gst-launch-1.0 udpsrc port=5001 ! application/x-rtp,encoding-name=H264,payload=96 ! rtph264depay ! h264parse ! queue ! avdec_h264 ! fpsdisplaysink sync=false async=false -e
+
+
+gst-launch-1.0 nvarguscamerasrc sensor-id=0 ! 'video/x-raw(memory:NVMM),width=1920, height=1080, framerate=60/1, format=NV12' ! nvvidconv ! capsfilter caps='video/x-raw,format=I420'  ! omxh264enc profile=8 control-rate=3 bitrate = 10000000 iframeinterval=5 preset-level=1 ! 'video/x-h264,stream-format=(string)byte-stream' ! h264parse ! rtph264pay config-interval=1 pt=96 ! multiudpsink clients="192.168.123.20:5001,192.168.123.10:5001", sync=false async=false
+
+
+#Вещание на 2 компа
+gst-launch-1.0 nvarguscamerasrc sensor-id=0 ! 'video/x-raw(memory:NVMM),width=1920, height=1080, framerate=60/1, format=NV12' ! nvvidconv ! capsfilter caps='video/x-raw,format=I420'  ! omxh264enc control-rate=2 bitrate = 15000000 ! 'video/x-h264,stream-format=(string)byte-stream' ! h264parse ! rtph264pay config-interval=-1 pt=96 ! multiudpsink clients="192.168.123.20:5001,192.168.123.10:5001", sync=false async=false
+
+
+
+
+#вещание на несколько компов 
+gst-launch-1.0 udpsrc multicast-iface=enp4s0 multicast-group=224.1.4.6 auto-multicast=true port=5000 ! application/x-rtp,encoding-name=H264,payload=96 ! rtph264depay ! h264parse ! queue ! avdec_h264 ! fpsdisplaysink sync=false async=false -e
+
+
+
+№Прием
+gst-launch-1.0 nvarguscamerasrc sensor-id=0 ! 'video/x-raw(memory:NVMM),width=1920, height=1080, framerate=60/1, format=NV12' ! nvvidconv ! capsfilter caps='video/x-raw,format=I420'  ! omxh264enc control-rate=2 bitrate = 15000000 ! 'video/x-h264,stream-format=(string)byte-stream' ! h264parse ! rtph264pay config-interval=-1 pt=96 ! udpsink host=224.1.4.6 auto-multicast=true port=5000 sync=false
+
